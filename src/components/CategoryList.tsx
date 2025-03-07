@@ -1,0 +1,72 @@
+import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import { updateCategoryName, deleteCategory } from '../store/productSlice';
+import { Category } from '../types/product';
+import { Modal } from './Modal';
+import { Button } from './buttons/Button';
+
+interface CategoryListProps {
+    productId: string;
+    categories: Category[];
+}
+
+export const CategoryList: React.FC<CategoryListProps> = ({ productId, categories }) => {
+    const dispatch = useDispatch();
+    const [showMaxWarning, setShowMaxWarning] = useState(false);
+
+    useEffect(() => {
+        if (categories.length >= 3) {
+            setShowMaxWarning(true);
+        }
+    }, [categories.length]);
+
+    const handleNameChange = (categoryId: string, name: string) => {
+        dispatch(updateCategoryName({ productId, categoryId, name }));
+    };
+
+    const handleDeleteCategory = (categoryId: string) => {
+        dispatch(deleteCategory({ productId, categoryId }));
+    };
+
+    return (
+        <>
+            <div className="flex min-h-[100px] w-full flex-col space-y-6">
+                {categories.map((category, index) => (
+                    <div
+                        key={category.id}
+                        className={`flex w-full items-center justify-center ${index !== 0 ? 'border-t border-gray-200 pt-6' : ''
+                            }`}
+                    >
+                        <div className="flex w-[280px] items-center justify-center">
+                            <input
+                                type="text"
+                                value={category.name}
+                                onChange={(e) => handleNameChange(category.id, e.target.value)}
+                                placeholder="Nama Kategori"
+                                className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
+                            />
+                            <button
+                                onClick={() => handleDeleteCategory(category.id)}
+                                className="ml-2 rounded-md bg-white p-1 text-gray-500 hover:bg-gray-100"
+                            >
+                                <XMarkIcon className="h-5 w-5" />
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <Modal isOpen={showMaxWarning} onClose={() => setShowMaxWarning(false)}>
+                <div className="text-center">
+                    <p className="mb-4 text-lg font-medium text-gray-900">
+                        Anda Sudah Mencapai Maksimum Input
+                    </p>
+                    <Button variant="secondary" onClick={() => setShowMaxWarning(false)}>
+                        Tutup
+                    </Button>
+                </div>
+            </Modal>
+        </>
+    );
+}; 

@@ -4,15 +4,21 @@ export interface Image {
     file: File;
 }
 
+export interface Category {
+    id: string;
+    name: string;
+    images: Image[];
+}
+
 export interface Product {
     id: string;
     number: number;
     name: string;
-    description: string;
-    images: Image[];
+    categories: Category[];
 }
 
 export interface ProductState {
     products: Product[];
     maxProducts: number;
+    maxCategories: number;
 } 
