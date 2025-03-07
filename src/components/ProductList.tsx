@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { addProduct } from '../store/productSlice';
+import { addProduct, fetchProducts } from '../store/productSlice';
 import { RootState } from '../store/store';
+import { useAppDispatch } from '../hooks/useAppDispatch';
 import { Product } from './Product';
 import { Modal } from './Modal';
 import { Button } from './buttons/Button';
 
 export const ProductList: React.FC = () => {
-    const dispatch = useDispatch();
-    const { products, maxProducts } = useSelector((state: RootState) => state.products);
+    const dispatch = useAppDispatch();
+    const { products, maxProducts, loading, error } = useSelector((state: RootState) => state.products);
     const [showMaxWarning, setShowMaxWarning] = useState(false);
+
+    useEffect(() => {
+        dispatch(fetchProducts());
+    }, [dispatch]);
 
     useEffect(() => {
         if (products.length >= maxProducts) {
@@ -25,6 +30,26 @@ export const ProductList: React.FC = () => {
             dispatch(addProduct());
         }
     };
+
+    if (loading) {
+        return (
+            <div className="container mx-auto max-w-6xl p-6">
+                <div className="flex items-center justify-center">
+                    <p className="text-gray-500">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="container mx-auto max-w-6xl p-6">
+                <div className="flex items-center justify-center">
+                    <p className="text-red-500">{error}</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="container mx-auto max-w-6xl p-6">

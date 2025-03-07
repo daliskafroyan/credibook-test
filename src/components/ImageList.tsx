@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch } from '../hooks/useAppDispatch';
 import { PhotoIcon } from '@heroicons/react/24/outline';
 import { addImage, deleteImage } from '../store/productSlice';
 import { Category } from '../types/product';
-import { v4 as uuidv4 } from 'uuid';
 import { Modal } from './Modal';
 import { ImagePreview } from './ImagePreview';
 import { ImageThumbnail } from './images/ImageThumbnail';
@@ -15,26 +14,36 @@ interface ImageListProps {
 }
 
 export const ImageList: React.FC<ImageListProps> = ({ productId, categories }) => {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [selectedDelete, setSelectedDelete] = useState<{ categoryId: string; imageId: string } | null>(
-        null
-    );
+    const [selectedDelete, setSelectedDelete] = useState<{ categoryId: string; imageId: string } | null>(null);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-    const handleFileChange = async (categoryId: string, file: File) => {
-        const imageUrl = URL.createObjectURL(file);
-        dispatch(
-            addImage({
-                productId,
-                categoryId,
-                image: {
-                    id: uuidv4(),
-                    url: imageUrl,
+    const handleFileChange = async (categoryId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) {
+            console.error('No file selected');
+            return;
+        }
+
+        // Validate file type
+        const fileType = file.type;
+        if (!fileType.startsWith('image/')) {
+            console.error('Selected file is not an image');
+            return;
+        }
+
+        try {
+            dispatch(
+                addImage({
+                    productId,
+                    categoryId,
                     file,
-                },
-            })
-        );
+                })
+            );
+        } catch (error) {
+            console.error('Error handling file:', error);
+        }
     };
 
     const handleDeleteClick = (categoryId: string, imageId: string) => {
@@ -62,8 +71,7 @@ export const ImageList: React.FC<ImageListProps> = ({ productId, categories }) =
                 {categories.map((category, index) => (
                     <div
                         key={category.id}
-                        className={`flex w-full flex-col ${index !== 0 ? 'border-t border-gray-200 pt-6' : ''
-                            }`}
+                        className={`flex w-full flex-col ${index !== 0 ? 'border-t border-gray-200 pt-6' : ''}`}
                     >
                         <div className="flex flex-wrap gap-2 px-3">
                             {category.images.map((image) => (
@@ -78,11 +86,8 @@ export const ImageList: React.FC<ImageListProps> = ({ productId, categories }) =
                             <label className="flex h-8 w-8 cursor-pointer items-center justify-center rounded border border-gray-300 hover:bg-gray-50">
                                 <input
                                     type="file"
-                                    accept=".jpg,.jpeg,.png"
-                                    onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) handleFileChange(category.id, file);
-                                    }}
+                                    accept="image/jpeg,image/png"
+                                    onChange={(e) => handleFileChange(category.id, e)}
                                     className="hidden"
                                 />
                                 <PhotoIcon className="h-4 w-4 text-gray-400" />
@@ -98,16 +103,10 @@ export const ImageList: React.FC<ImageListProps> = ({ productId, categories }) =
                         Apakah Anda Yakin untuk Menghapus Gambar?
                     </p>
                     <div className="flex justify-center space-x-4">
-                        <Button
-                            variant="secondary"
-                            onClick={() => setShowDeleteConfirm(false)}
-                        >
+                        <Button variant="secondary" onClick={() => setShowDeleteConfirm(false)}>
                             Batalkan
                         </Button>
-                        <Button
-                            variant="danger"
-                            onClick={handleConfirmDelete}
-                        >
+                        <Button variant="danger" onClick={handleConfirmDelete}>
                             Hapus
                         </Button>
                     </div>

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch } from '../hooks/useAppDispatch';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { updateCategoryName, deleteCategory } from '../store/productSlice';
 import { Category } from '../types/product';
 import { Modal } from './Modal';
 import { Button } from './buttons/Button';
+import { useDebounce } from '../hooks/useDebounce';
 
 interface CategoryListProps {
     productId: string;
@@ -12,8 +13,17 @@ interface CategoryListProps {
 }
 
 export const CategoryList: React.FC<CategoryListProps> = ({ productId, categories }) => {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const [showMaxWarning, setShowMaxWarning] = useState(false);
+    const [localNames, setLocalNames] = useState<{ [key: string]: string }>({});
+
+    useEffect(() => {
+        const names: { [key: string]: string } = {};
+        categories.forEach(category => {
+            names[category.id] = category.name;
+        });
+        setLocalNames(names);
+    }, [categories]);
 
     useEffect(() => {
         if (categories.length >= 3) {
@@ -21,8 +31,16 @@ export const CategoryList: React.FC<CategoryListProps> = ({ productId, categorie
         }
     }, [categories.length]);
 
+    const debouncedUpdateName = useDebounce((categoryId: string, name: string) => {
+        const category = categories.find(c => c.id === categoryId);
+        if (category && category.name !== name) {
+            dispatch(updateCategoryName({ productId, categoryId, name }));
+        }
+    }, 500);
+
     const handleNameChange = (categoryId: string, name: string) => {
-        dispatch(updateCategoryName({ productId, categoryId, name }));
+        setLocalNames(prev => ({ ...prev, [categoryId]: name }));
+        debouncedUpdateName(categoryId, name);
     };
 
     const handleDeleteCategory = (categoryId: string) => {
@@ -35,13 +53,12 @@ export const CategoryList: React.FC<CategoryListProps> = ({ productId, categorie
                 {categories.map((category, index) => (
                     <div
                         key={category.id}
-                        className={`flex w-full items-center justify-center ${index !== 0 ? 'border-t border-gray-200 pt-6' : ''
-                            }`}
+                        className={`flex w-full items-center justify-center ${index !== 0 ? 'border-t border-gray-200 pt-6' : ''}`}
                     >
                         <div className="flex w-[280px] items-center justify-center">
                             <input
                                 type="text"
-                                value={category.name}
+                                value={localNames[category.id] || ''}
                                 onChange={(e) => handleNameChange(category.id, e.target.value)}
                                 placeholder="Nama Kategori"
                                 className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"

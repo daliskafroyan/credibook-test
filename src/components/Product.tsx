@@ -1,21 +1,43 @@
-import React from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { useAppDispatch } from '../hooks/useAppDispatch';
 import { XMarkIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { updateProductName, deleteProduct, addCategory } from '../store/productSlice';
 import { Product as ProductType } from '../types/product';
 import { CategoryList } from './CategoryList';
 import { ImageList } from './ImageList';
 import { Button } from './buttons/Button';
+import { Modal } from './Modal';
+import { useDebounce } from '../hooks/useDebounce';
 
 interface ProductProps {
     product: ProductType;
 }
 
 export const Product: React.FC<ProductProps> = ({ product }) => {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
+    const [showMaxWarning, setShowMaxWarning] = useState(false);
+    const [localName, setLocalName] = useState(product.name);
+
+    useEffect(() => {
+        if (product.categories.length >= 3) {
+            setShowMaxWarning(true);
+        }
+    }, [product.categories.length]);
+
+    useEffect(() => {
+        setLocalName(product.name);
+    }, [product.name]);
+
+    const debouncedUpdateName = useDebounce((name: string) => {
+        if (name !== product.name) {
+            dispatch(updateProductName({ id: product.id, name }));
+        }
+    }, 500);
 
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        dispatch(updateProductName({ id: product.id, name: e.target.value }));
+        const newName = e.target.value;
+        setLocalName(newName);
+        debouncedUpdateName(newName);
     };
 
     const handleDelete = () => {
@@ -23,7 +45,11 @@ export const Product: React.FC<ProductProps> = ({ product }) => {
     };
 
     const handleAddCategory = () => {
-        dispatch(addCategory(product.id));
+        if (product.categories.length >= 3) {
+            setShowMaxWarning(true);
+        } else {
+            dispatch(addCategory(product.id));
+        }
     };
 
     return (
@@ -35,7 +61,7 @@ export const Product: React.FC<ProductProps> = ({ product }) => {
                 <td className="w-48 px-3 py-4">
                     <input
                         type="text"
-                        value={product.name}
+                        value={localName}
                         onChange={handleNameChange}
                         placeholder="Nama Produk"
                         className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
@@ -73,6 +99,16 @@ export const Product: React.FC<ProductProps> = ({ product }) => {
                     <td className="w-20 py-4 pl-3 pr-6"></td>
                 </tr>
             )}
+            <Modal isOpen={showMaxWarning} onClose={() => setShowMaxWarning(false)}>
+                <div className="text-center">
+                    <p className="mb-4 text-lg font-medium text-gray-900">
+                        Anda Sudah Mencapai Maksimum Input
+                    </p>
+                    <Button variant="secondary" onClick={() => setShowMaxWarning(false)}>
+                        Tutup
+                    </Button>
+                </div>
+            </Modal>
         </>
     );
 }; 

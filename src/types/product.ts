@@ -21,4 +21,6 @@ export interface ProductState {
     products: Product[];
     maxProducts: number;
     maxCategories: number;
+    loading: boolean;
+    error: string | null;
 } 
