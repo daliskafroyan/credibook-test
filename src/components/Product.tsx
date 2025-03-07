@@ -19,12 +19,6 @@ export const Product: React.FC<ProductProps> = ({ product }) => {
     const [localName, setLocalName] = useState(product.name);
 
     useEffect(() => {
-        if (product.categories.length >= 3) {
-            setShowMaxWarning(true);
-        }
-    }, [product.categories.length]);
-
-    useEffect(() => {
         setLocalName(product.name);
     }, [product.name]);
 

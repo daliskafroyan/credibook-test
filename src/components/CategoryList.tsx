@@ -25,12 +25,6 @@ export const CategoryList: React.FC<CategoryListProps> = ({ productId, categorie
         setLocalNames(names);
     }, [categories]);
 
-    useEffect(() => {
-        if (categories.length >= 3) {
-            setShowMaxWarning(true);
-        }
-    }, [categories.length]);
-
     const debouncedUpdateName = useDebounce((categoryId: string, name: string) => {
         const category = categories.find(c => c.id === categoryId);
         if (category && category.name !== name) {
