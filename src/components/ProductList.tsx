@@ -17,12 +17,6 @@ export const ProductList: React.FC = () => {
         dispatch(fetchProducts());
     }, [dispatch]);
 
-    useEffect(() => {
-        if (products.length >= maxProducts) {
-            setShowMaxWarning(true);
-        }
-    }, [products.length, maxProducts]);
-
     const handleAddProduct = () => {
         if (products.length >= maxProducts) {
             setShowMaxWarning(true);

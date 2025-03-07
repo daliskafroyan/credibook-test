@@ -17,11 +17,12 @@ export const productService = {
             .order('number');
 
         if (error) throw error;
-        return data;
+        return data || [];
     },
 
     // Create a new product
     async createProduct(number: number) {
+        // Then insert the new product
         const { data, error } = await supabase
             .from('products')
             .insert([{ number, name: '' }])
@@ -44,12 +45,31 @@ export const productService = {
 
     // Delete product
     async deleteProduct(id: string) {
-        const { error } = await supabase
+        // Delete the product
+        const { error: deleteError } = await supabase
             .from('products')
             .delete()
             .eq('id', id);
 
-        if (error) throw error;
+        if (deleteError) throw deleteError;
+
+        // Get all remaining products
+        const { data: products, error: getError } = await supabase
+            .from('products')
+            .select('id, number')
+            .order('number');
+
+        if (getError) throw getError;
+
+        // Update numbers for all products
+        for (let i = 0; i < (products || []).length; i++) {
+            const { error: updateError } = await supabase
+                .from('products')
+                .update({ number: i + 1 })
+                .eq('id', products[i].id);
+
+            if (updateError) throw updateError;
+        }
     },
 
     // Add category to product

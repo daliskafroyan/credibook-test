@@ -10,12 +10,20 @@ const initialState: ProductState = {
     error: null
 };
 
+// Helper function to update product numbers
+const updateProductNumbers = (products: any[]) => {
+    return products.map((product, index) => ({
+        ...product,
+        number: index + 1
+    }));
+};
+
 // Async thunks
 export const fetchProducts = createAsyncThunk(
     'products/fetchProducts',
     async () => {
         const products = await productService.getProducts();
-        return products;
+        return updateProductNumbers(products);
     }
 );
 
@@ -120,6 +128,8 @@ export const productSlice = createSlice({
                         ...action.payload,
                         categories: []
                     });
+                    // Update all product numbers
+                    state.products = updateProductNumbers(state.products);
                 }
             })
 
@@ -134,6 +144,8 @@ export const productSlice = createSlice({
             // Delete Product
             .addCase(deleteProduct.fulfilled, (state, action) => {
                 state.products = state.products.filter(p => p.id !== action.payload);
+                // Update all product numbers
+                state.products = updateProductNumbers(state.products);
             })
 
             // Add Category
