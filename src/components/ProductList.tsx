@@ -18,8 +18,9 @@ export const ProductList: React.FC = () => {
     }, [dispatch]);
 
     const handleAddProduct = () => {
-        if (products.length >= maxProducts) {
+        if (products.length === 4) {
             setShowMaxWarning(true);
+            dispatch(addProduct());
         } else {
             dispatch(addProduct());
         }

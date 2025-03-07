@@ -39,8 +39,9 @@ export const Product: React.FC<ProductProps> = ({ product }) => {
     };
 
     const handleAddCategory = () => {
-        if (product.categories.length >= 3) {
+        if (product.categories.length === 2) {
             setShowMaxWarning(true);
+            dispatch(addCategory(product.id));
         } else {
             dispatch(addCategory(product.id));
         }
